@@ -4,7 +4,9 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 from routes.users import users_router
 
+import pytz, datetime
 
+APP_TZ = pytz.timezone("Australia/Brisbane")
 
 app = FastAPI()
 
