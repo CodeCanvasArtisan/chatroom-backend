@@ -10,3 +10,11 @@ class User(BaseModel):
     # all of these are required
 
 users_router = APIRouter()
+
+@users_router.get("/")
+def root():
+    return {"message" : "hi"}
+
+@users_router.post("/post")
+def post():
+    return {"message" : "hi"}
