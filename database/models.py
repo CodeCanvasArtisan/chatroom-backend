@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Text, DateTime, func, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Text, DateTime, func, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -46,6 +46,7 @@ class Chat(Base):
     id=Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     creator_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)
+    pinned=Column(Boolean, index=True, default=False, nullable=True)
 
     creator = relationship("User", back_populates="owned_chats")
     memberships = relationship("Membership", back_populates="chat", cascade="all, delete-orphan")
