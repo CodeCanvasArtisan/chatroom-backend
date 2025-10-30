@@ -3,6 +3,10 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
+from passlib.context import CryptContext
+# Set up a password context
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
+
 Base = declarative_base() # base class for all models
 
 class User(Base): # make sure to handle shit when user is deleted
@@ -11,6 +15,7 @@ class User(Base): # make sure to handle shit when user is deleted
     id = Column(Integer, primary_key=True, index=True)
     display_name = Column(String, unique=True, index=True, nullable=False)
     email = Column(String, unique=False, index=True, nullable=False)
+    password_hash = Column(String, nullable=False)
     date_joined = Column(DateTime(timezone=True), server_default=func.now())
 
     # relationships
@@ -25,6 +30,13 @@ class User(Base): # make sure to handle shit when user is deleted
             "display_name" : self.display_name,
             "email" : self.email,
         }
+    
+    # password methods
+    def set_password(self, password: str):
+        self.password_hash = pwd_context.hash(password)
+
+    def check_password(self, password: str) -> bool:
+        return pwd_context.verify(password, self.password_hash)
     
    
 
