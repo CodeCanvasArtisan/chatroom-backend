@@ -20,7 +20,6 @@ class User(Base): # make sure to handle shit when user is deleted
 
     # relationships
     memberships = relationship("Membership", back_populates="user")
-    active_sessions = relationship("ActiveSession", back_populates="user")
     owned_chats = relationship("Chat", back_populates="creator")
     sent_messages = relationship("Message", back_populates="creator")
 
@@ -102,20 +101,4 @@ class Message(Base):
             "creator_id" : self.creator_id,
             "content" : self.content,
             "time_sent" : self.time_sent
-        }
-
-class ActiveSession(Base): # active sessions
-    __tablename__ = "active_sessions"
-
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), index=True)
-    start = Column(DateTime(timezone=True), server_default=func.now())
-
-    user = relationship("User", back_populates="active_sessions")
-
-    def to_dict(self):
-        return {
-            "id" : self.id,
-            "user_id" : self.user_id,
-            "start_time" : self.start
         }
