@@ -13,7 +13,7 @@ class User(Base): # make sure to handle shit when user is deleted
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    display_name = Column(String, unique=True, index=True, nullable=False)
+    username = Column(String, unique=True, index=True, nullable=False)
     email = Column(String, unique=False, index=True, nullable=False)
     password_hash = Column(String, nullable=False)
     date_joined = Column(DateTime(timezone=True), server_default=func.now())
@@ -36,7 +36,7 @@ class User(Base): # make sure to handle shit when user is deleted
 
     def check_password(self, password: str) -> bool:
         return pwd_context.verify(password, self.password_hash)
-    
+
    
 
 class Chat(Base):
