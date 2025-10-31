@@ -10,12 +10,12 @@ import routes.pydantic_models as models
 import logging
 logger = logging.getLogger(__name__)
 
-users_router = APIRouter()
+users = APIRouter()
 
 # use request.json() to convert JSON to a dict (request import needed from fastapi)
 
 
-@users_router.post("/users", status_code=status.HTTP_201_CREATED, response_model=models.UserOut)
+@users.post("/users", status_code=status.HTTP_201_CREATED, response_model=models.UserOut)
 def new_user(
     user_info : models.UserCreate, 
     db: Session = Depends(get_db)
@@ -33,7 +33,7 @@ def new_user(
     try:
         # enter the user into the database
         created_user = User(
-            display_name = user_info.display_name,
+            username = user_info.username,
             email = normalised_email
         )
         # set password
@@ -56,6 +56,5 @@ def new_user(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
             detail=f"An error occurred while creating the user")
     
-
 
 

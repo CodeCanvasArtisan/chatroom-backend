@@ -26,7 +26,7 @@ class User(Base): # make sure to handle shit when user is deleted
     def to_dict(self):
         return {
             "id" : self.id,
-            "display_name" : self.display_name,
+            "username" : self.username,
             "email" : self.email,
         }
     
