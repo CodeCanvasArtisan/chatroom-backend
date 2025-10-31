@@ -45,7 +45,6 @@ class Chat(Base):
     id=Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     creator_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)
-    pinned=Column(Boolean, index=True, default=False, nullable=True)
 
     creator = relationship("User", back_populates="owned_chats")
     memberships = relationship("Membership", back_populates="chat", cascade="all, delete-orphan")
@@ -65,6 +64,7 @@ class Membership(Base):
     chat_id = Column(Integer, ForeignKey("chats.id"), index=True)
     user_id = Column(Integer, ForeignKey("users.id"), index=True)
     joined_at = Column(DateTime(timezone=True), server_default=func.now())
+    pinned=Column(Boolean, index=True, default=False, nullable=True)
 
     # relationships
     user = relationship("User", back_populates="memberships")
