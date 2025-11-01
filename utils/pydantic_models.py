@@ -29,6 +29,16 @@ class UserOut(BaseModel):
     username : str
     email : str
 
+# Messages
+class MessageCreate(BaseModel):
+    user_id : int
+    contents : str
+
+class MessageOut(BaseModel):
+    username : str
+    contents : str
+    timestamp : str
+
 # Chats
 class Member(BaseModel):
     id : int
@@ -38,25 +48,18 @@ class Member(BaseModel):
 
 class ChatOut(BaseModel):
     name : str
-    creator_id : int
-    members : list[Member]
+    is_creator : bool = False
     pinned : bool = False
+    members : list[Member]
+    initial_messages : list[MessageOut]
+
 
 class ChatCreate(BaseModel):
     name : str
     creator_id : int
     member_ids : list[int] = []
 
-# Messages
-class MessageCreate(BaseModel):
-    user_id : int
-    contents : str
 
-class MessageOut(BaseModel):
-    id : int
-    username : str
-    contents : str
-    timestamp : str
 
 # Chats
 

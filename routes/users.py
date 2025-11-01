@@ -73,14 +73,14 @@ def get_all_user_chats(user_id : int, db : Session = Depends(get_db)):
         
         if not user_chats or len(user_chats) == 0:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No chats could be found for this user")
-        
-        for chat in user_chats:
-            print("CHAT -> ", chat)
 
+
+        
         results = [
             models.ChatOut(
                 name=chat[0].name,
-                creator_id=chat[0].creator_id,
+                is_creator = True if chat[0].creator_id == user_id else False,
+                pinned = chat[1],
                 members = [
                     models.Member(
                         id = mem.user.id,
@@ -89,7 +89,14 @@ def get_all_user_chats(user_id : int, db : Session = Depends(get_db)):
                         creator = True if mem.user.id == chat[0].creator_id else False
                     ) for mem in chat[0].memberships
                 ],
-                pinned = chat[1]
+                initial_messages = [
+                    models.MessageOut(
+                        username = mess.creator.username,
+                        contents = mess.content,
+                        timestamp = str(mess.time_sent)
+                    ) for mess in chat[0].messages
+                ]
+
             ) for chat in user_chats
         ]
         return results  
