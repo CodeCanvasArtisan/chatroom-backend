@@ -50,7 +50,7 @@ class ChatOut(BaseModel):
     name : str
     is_creator : bool = False
     pinned : bool = False
-    members : list[Member]
+    members : list[Member] = []
     initial_messages : list[MessageOut]
 
 
@@ -58,6 +58,10 @@ class ChatCreate(BaseModel):
     name : str
     creator_id : int
     member_ids : list[int] = []
+
+class ChatIn(BaseModel):
+    new_name : str
+    pinned : bool
 
 
 
