@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-import routes.pydantic_models as model 
+import utils.pydantic_models as model 
 
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
