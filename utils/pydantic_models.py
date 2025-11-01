@@ -2,8 +2,8 @@ from pydantic import BaseModel, model_validator, field_validator
 
 # Users
 class UserIn(BaseModel):
-    username : str
-    email : str
+    username : str = ""
+    email : str = ""
     password : str
 
     @model_validator(mode='after')
@@ -24,11 +24,28 @@ class UserCreate(BaseModel):
             raise ValueError(f"{info.field_name} cannot be empty.")
         return v.strip()
    
-
 class UserOut(BaseModel):
     id : int
     username : str
     email : str
+
+# Chats
+class Member(BaseModel):
+    id : int
+    username : str
+    email : str
+    creator : bool = False
+
+class ChatOut(BaseModel):
+    name : str
+    creator_id : int
+    members : list[Member]
+    pinned : bool = False
+
+class ChatCreate(BaseModel):
+    name : str
+    creator_id : int
+    member_ids : list[int] = []
 
 # Messages
 class MessageCreate(BaseModel):

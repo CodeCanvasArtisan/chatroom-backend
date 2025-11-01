@@ -2,13 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from sqlalchemy.orm import Session
 from database.database import get_db
-from database.models import User
+from database.models import User, Chat, Message, Membership
 
-import routes.pydantic_models as models
+import utils.pydantic_models as models
 
 # logger for debugging
-import logging
-logger = logging.getLogger(__name__)
+from utils.debug_utils import logger
 
 users = APIRouter()
 
@@ -56,5 +55,49 @@ def new_user(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
             detail=f"An error occurred while creating the user")
     
+@users.get("/users/{user_id}/chats", response_model=list[models.ChatOut])
+def get_all_user_chats(user_id : int, db : Session = Depends(get_db)):
+    # find all chats for this user
+    try:
+        user_chats = [chat for chat in (
+            db.query(Chat, Membership.pinned)
+            .join(Membership, Chat.id == Membership.chat_id)
+            .filter(
+                Membership.user_id == user_id
+            )
+            .order_by(
+                Membership.pinned.desc(),
+                Chat.name
+            )
+        )]
+        
+        if not user_chats or len(user_chats) == 0:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No chats could be found for this user")
+        
+        for chat in user_chats:
+            print("CHAT -> ", chat)
 
+        results = [
+            models.ChatOut(
+                name=chat[0].name,
+                creator_id=chat[0].creator_id,
+                members = [
+                    models.Member(
+                        id = mem.user.id,
+                        username = mem.user.username,
+                        email = mem.user.email,
+                        creator = True if mem.user.id == chat[0].creator_id else False
+                    ) for mem in chat[0].memberships
+                ],
+                pinned = chat[1]
+            ) for chat in user_chats
+        ]
+        return results  
+    except Exception as e:
+        logger.error(f"unexpected error -> {e}")
+        raise HTTPException(status_code = status.HTTP_500_INTERNAL_SERVER_ERROR, detail = f"unexpected error -> {e}")
+    
 
+    
+    
+    # find last 20 messages
