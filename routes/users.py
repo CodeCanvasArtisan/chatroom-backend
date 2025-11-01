@@ -105,3 +105,45 @@ def get_all_user_chats(user_id : int, db : Session = Depends(get_db)):
     
     
     # find last 20 messages
+
+@users.patch("/users/{user_id}/chats/{chat_id}", response_model=models.ChatOut)
+def change_pinned_status(user_id : int, chat_id : int, new_chat_info : models.ChatIn, db : Session=Depends(get_db)):
+    subject_chat = db.query(Chat).filter_by(id = chat_id).first()
+
+    if not subject_chat:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Chat not found")
+    
+    # USE JWT TO EXTRACT USER ID
+    subject_chat_membership = next(
+        (mem for mem in subject_chat.memberships if mem.user_id == user_id),
+        None
+    )
+
+    if not subject_chat_membership or subject_chat_membership is None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You must be a member to pin this chat.")
+    
+    subject_chat_membership.pinned = new_chat_info.pinned
+
+    db.commit()
+    db.refresh(subject_chat_membership)
+
+    return {
+        "name" : subject_chat.name,
+        "is_creator" : True if user_id == subject_chat.creator_id else False, # USE JWT TO DECIDE IF THE CURRENT USER IS CREATOR
+        "pinned" : subject_chat_membership.pinned, 
+        "members" : [
+                models.Member(
+                    id = mem.user.id,
+                    username = mem.user.username,
+                    email = mem.user.email,
+                    creator = True if mem.user.id == subject_chat.creator_id else False
+                ) for mem in subject_chat.memberships
+            ],
+        "initial_messages" : [
+            models.MessageOut(
+                username = mess.creator.username,
+                contents = mess.content,
+                timestamp = str(mess.time_sent)
+            ) for mess in sorted(subject_chat.messages, key=lambda x: x.time_sent)[-10:] 
+        ]
+    }
