@@ -55,7 +55,7 @@ def new_user(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
             detail=f"An error occurred while creating the user")
     
-@users.get("/users/{user_id}/chats", response_model=list[models.ChatOut])
+@users.get("/users/{user_id}/memberships", response_model=list[models.ChatOut])
 def get_all_user_chats(user_id : int, db : Session = Depends(get_db)):
     # find all chats for this user
     try:
@@ -106,7 +106,7 @@ def get_all_user_chats(user_id : int, db : Session = Depends(get_db)):
     
     # find last 20 messages
 
-@users.patch("/users/{user_id}/chats/{chat_id}", response_model=models.ChatOut)
+@users.patch("/users/{user_id}/memberships/{chat_id}", response_model=models.ChatOut)
 def change_pinned_status(user_id : int, chat_id : int, new_chat_info : models.ChatIn, db : Session=Depends(get_db)):
     subject_chat = db.query(Chat).filter_by(id = chat_id).first()
 
@@ -148,7 +148,7 @@ def change_pinned_status(user_id : int, chat_id : int, new_chat_info : models.Ch
         ]
     }
 
-@users.delete("/users/{user_id}/chats/{chat_id}", status_code=status.HTTP_204_NO_CONTENT)
+@users.delete("/users/{user_id}/memberships/{chat_id}", status_code=status.HTTP_204_NO_CONTENT)
 def leave_chat(user_id : int, chat_id : int, db : Session=Depends(get_db)):
     
     subject_membership = db.query(Membership).filter_by(
