@@ -147,3 +147,24 @@ def change_pinned_status(user_id : int, chat_id : int, new_chat_info : models.Ch
             ) for mess in sorted(subject_chat.messages, key=lambda x: x.time_sent)[-10:] 
         ]
     }
+
+@users.delete("/users/{user_id}/chats/{chat_id}", status_code=status.HTTP_204_NO_CONTENT)
+def leave_chat(user_id : int, chat_id : int, db : Session=Depends(get_db)):
+    
+    subject_membership = db.query(Membership).filter_by(
+        chat_id = chat_id,
+        user_id = user_id
+    ).first()
+
+    if not subject_membership or subject_membership is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Membership not found.")
+    
+    if subject_membership.chat.creator_id == user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail="You cannot leave this chat as the owner. Try deleting it instead.")
+    
+    db.delete(subject_membership)
+    db.commit()
+
+    return None

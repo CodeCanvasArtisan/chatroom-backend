@@ -118,7 +118,7 @@ def new_chat_name(chat_id : int, chat_info_new : model.ChatIn, db : Session = De
     }
 
 @chats.delete("/chats/{chat_id}", status_code=status.HTTP_204_NO_CONTENT)
-def new_chat_name(chat_id : int, db : Session = Depends(get_db)):
+def delete_chat(chat_id : int, db : Session = Depends(get_db)):
     
     subject_chat = db.query(Chat).filter_by(id = chat_id).first()
     if not subject_chat or subject_chat is None:
