@@ -116,4 +116,22 @@ def new_chat_name(chat_id : int, chat_info_new : model.ChatIn, db : Session = De
             ) for mess in sorted(subject_chat.messages, key=lambda x: x.time_sent)[-10:] 
         ]
     }
+
+@chats.delete("/chats/{chat_id}", status_code=status.HTTP_204_NO_CONTENT)
+def new_chat_name(chat_id : int, db : Session = Depends(get_db)):
     
+    subject_chat = db.query(Chat).filter_by(id = chat_id).first()
+    if not subject_chat or subject_chat is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Chat not found.")
+    
+    # MAKE SURE THEY'RE AUTHORISED TO DO THIS WITH JWT
+    user_id = 7 # change this for prod
+    is_owner = True if user_id == subject_chat.creator_id else False
+
+    if not is_owner:
+        raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail="You must be an owner to delete this chat")
+    
+    db.delete(subject_chat)
+    db.commit()
+
+    return None
