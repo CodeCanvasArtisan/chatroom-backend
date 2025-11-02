@@ -70,6 +70,7 @@ def get_rest_of_chat_messages(chat_id : int, db : Session = Depends(get_db)):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Requested chat was not found")
 
         # most recent 10 are already given to the client
+        print("SCM -> ", subject_chat.messages)
         all_chat_messages = sorted(subject_chat.messages, key=lambda x: x.time_sent)[:-10]
         
         

@@ -35,7 +35,8 @@ class MessageCreate(BaseModel):
     contents : str
 
 class MessageOut(BaseModel):
-    username : str
+    type : str = "message"
+    sender : str
     contents : str
     timestamp : str
 

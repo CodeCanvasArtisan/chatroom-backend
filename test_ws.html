@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test</title>
+</head>
+<body>
+    <h1>WebSocket Test</h1>
+    <div id="status">Connecting...</div>
+    <script>
+        const ws = new WebSocket('ws://localhost:8000/ws/8/7');
+
+        ws.onopen = () => {
+            document.getElementById('status').textContent = 'Connected! Type in console: ws.send("hello")';
+            console.log('Connected! Try: ws.send("hello")');
+        };
+
+        ws.onmessage = (event) => {
+            
+            const message = JSON.parse(event.data);
+            console.log('📩 Received:', message);
+            console.log('Message type:', message.type);
+            console.log('Content:', message.content);
+            console.log('Time:', message.timestamp);
+            console.log('Sender:', message.sender);
+        };
+
+        ws.onclose = () => {
+            document.getElementById('status').textContent = 'Disconnected';
+        };
+    </script>
+</body>
+</html>

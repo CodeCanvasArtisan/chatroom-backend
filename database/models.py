@@ -3,6 +3,9 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
+import pytz
+from datetime import datetime
+
 from passlib.context import CryptContext
 # Set up a password context
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
@@ -81,6 +84,9 @@ class Membership(Base):
             "user_id" : self.user_id,
         }
 
+def brisbane_now():
+    return datetime.now(tz=pytz.timezone("Australia/Brisbane"))
+
 class Message(Base):
     __tablename__ = "messages"
 
@@ -88,7 +94,7 @@ class Message(Base):
     chat_id = Column(Integer, ForeignKey("chats.id"), index=True, nullable=False)
     creator_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False) # foreign key ensures that this value matches something in users
     content = Column(Text, nullable=False)
-    time_sent = Column(DateTime(timezone=True), server_default=func.now())
+    time_sent = Column(DateTime(timezone=True), nullable=False)
 
     # relationships
     creator = relationship("User", back_populates="sent_messages")

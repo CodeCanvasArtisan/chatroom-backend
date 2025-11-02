@@ -89,7 +89,7 @@ def get_all_user_chats(user_id : int, db : Session = Depends(get_db)):
                 ],
                 initial_messages = [
                     models.MessageOut(
-                        username = mess.creator.username,
+                        sender = mess.creator.username,
                         contents = mess.content,
                         timestamp = str(mess.time_sent)
                     ) for mess in sorted(chat[0].messages, key=lambda x: x.time_sent)[-10:] 
