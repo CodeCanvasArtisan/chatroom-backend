@@ -56,7 +56,7 @@ def new_user(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
             detail=f"An error occurred while creating the user")
-    
+
 @users.get("/users/memberships", response_model=list[models.ChatOut])
 def get_all_user_chats(user_id : int = Depends(get_current_user_id), db : Session = Depends(get_db)):
     # find all chats for this user

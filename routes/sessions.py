@@ -19,7 +19,7 @@ def new_session(user_info : model.UserIn, db : Session = Depends(get_db)):
         )
     ).first()
 
-    # deny the user access if not the right email or pwd
+    # deny the user access if not the right email/username or password
     if not user_db or not user_db.check_password(user_info.password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username/email or password.")
     
@@ -28,6 +28,6 @@ def new_session(user_info : model.UserIn, db : Session = Depends(get_db)):
 
     return {
         "access_token" : access_token,
-        "token-type" : "bearer",
+        "token_type" : "bearer",
         "user": user_db.to_dict()
     }
