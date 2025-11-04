@@ -106,6 +106,30 @@ def get_all_user_chats(user_id : int, db : Session = Depends(get_db)):
     
     # find last 20 messages
 
+@users.post("/users/{user_id}/membership/{chat_id}", status_code = status.HTTP_201_CREATED, response_model=models.Member)
+def join_chat(user_id : int, chat_id : int, db : Session=Depends(get_db)):
+
+    joining_chat = db.query(Chat).filter_by(id = chat_id).first()
+
+    if not joining_chat or joining_chat == None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail = "Chat could not be found")
+    
+    new_membership = Membership(
+        chat_id = joining_chat.id,
+        user_id = user_id
+    )
+    db.add(new_membership)
+    db.commit()
+    db.refresh(new_membership)
+
+    return {
+        "id" : new_membership.user.id,
+        "username" : new_membership.user.username,
+        "email" : new_membership.user.email,
+        "creator" : False,
+        "chat_name" : new_membership.chat.name
+    }
+    
 @users.patch("/users/{user_id}/memberships/{chat_id}", response_model=models.ChatOut)
 def change_pinned_status(user_id : int, chat_id : int, new_chat_info : models.ChatIn, db : Session=Depends(get_db)):
     subject_chat = db.query(Chat).filter_by(id = chat_id).first()

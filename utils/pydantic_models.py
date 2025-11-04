@@ -46,6 +46,7 @@ class Member(BaseModel):
     username : str
     email : str
     creator : bool = False
+    chat_name : str = ""
 
 class ChatOut(BaseModel):
     name : str
