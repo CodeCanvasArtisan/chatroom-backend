@@ -6,6 +6,8 @@ from database.models import User, Chat, Message, Membership
 
 import utils.pydantic_models as models
 
+from utils.auth import get_current_user_id
+
 # logger for debugging
 from utils.debug_utils import logger
 
@@ -55,8 +57,8 @@ def new_user(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
             detail=f"An error occurred while creating the user")
     
-@users.get("/users/{user_id}/memberships", response_model=list[models.ChatOut])
-def get_all_user_chats(user_id : int, db : Session = Depends(get_db)):
+@users.get("/users/memberships", response_model=list[models.ChatOut])
+def get_all_user_chats(user_id : int = Depends(get_current_user_id), db : Session = Depends(get_db)):
     # find all chats for this user
     try:
         user_chats = [chat for chat in (
@@ -106,8 +108,12 @@ def get_all_user_chats(user_id : int, db : Session = Depends(get_db)):
     
     # find last 20 messages
 
-@users.post("/users/{user_id}/membership/{chat_id}", status_code = status.HTTP_201_CREATED, response_model=models.Member)
-def join_chat(user_id : int, chat_id : int, db : Session=Depends(get_db)):
+@users.post("/users/membership/{chat_id}", status_code = status.HTTP_201_CREATED, response_model=models.Member)
+def join_chat(
+    chat_id : int, 
+    user_id : int = Depends(get_current_user_id), 
+    db : Session=Depends(get_db)
+    ):
 
     joining_chat = db.query(Chat).filter_by(id = chat_id).first()
 
@@ -130,8 +136,14 @@ def join_chat(user_id : int, chat_id : int, db : Session=Depends(get_db)):
         "chat_name" : new_membership.chat.name
     }
     
-@users.patch("/users/{user_id}/memberships/{chat_id}", response_model=models.ChatOut)
-def change_pinned_status(user_id : int, chat_id : int, new_chat_info : models.ChatIn, db : Session=Depends(get_db)):
+@users.patch("/users/memberships/{chat_id}", response_model=models.ChatOut)
+def change_pinned_status(
+    chat_id : int, 
+    new_chat_info : models.ChatIn, 
+    user_id : int = Depends(get_current_user_id),
+    db : Session=Depends(get_db)
+    ):
+
     subject_chat = db.query(Chat).filter_by(id = chat_id).first()
 
     if not subject_chat:
@@ -172,8 +184,12 @@ def change_pinned_status(user_id : int, chat_id : int, new_chat_info : models.Ch
         ]
     }
 
-@users.delete("/users/{user_id}/memberships/{chat_id}", status_code=status.HTTP_204_NO_CONTENT)
-def leave_chat(user_id : int, chat_id : int, db : Session=Depends(get_db)):
+@users.delete("/users/memberships/{chat_id}", status_code=status.HTTP_204_NO_CONTENT)
+def leave_chat(
+    chat_id : int, 
+    user_id : int = Depends(get_current_user_id),
+    db : Session=Depends(get_db)
+    ):
     
     subject_membership = db.query(Membership).filter_by(
         chat_id = chat_id,

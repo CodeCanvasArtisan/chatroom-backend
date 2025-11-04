@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status, WebSocket
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query, Depends
+from utils.auth import verify_access_token
+from jose import JWTError
 
 import json, pytz
 
@@ -12,9 +14,9 @@ import utils.pydantic_models as models
 
 # logger for debugging
 from utils.debug_utils import logger
+from utils.auth import get_current_user_id
 
 from typing import List, Dict
-
 
 class ConnectionManager:
     def __init__(self):
@@ -48,14 +50,51 @@ manager = ConnectionManager()
 
 router = APIRouter()
 
-@router.websocket("/ws/{chat_id}/{user_id}")
-async def websocket_endpoint(chat_id : int, websocket : WebSocket, user_id : int, db : Session=Depends(get_db)):
+@router.websocket("/ws/{chat_id}")
+async def websocket_endpoint(
+    chat_id : int, 
+    websocket : WebSocket, 
+    token : str = Query(...),  # query(...) means this parameter is required (?token=xyz expected)
+    db : Session=Depends(get_db)
+    ):
+
+    # verify token
+    try:
+        payload = verify_access_token(token)
+        user_id = payload.get("user_id")
+
+        if user_id is None:
+            await websocket.close(code=4001, reason="Invalid token")
+            return
+    
+    except Exception as e:
+        # Token is invalid/expired
+        await websocket.close(code=4001, reason="Authentication failed")
+        return
+
+    # after that, accept connection
     await manager.connect(websocket, chat_id)
+
+    # verify that the user is a member of this chat
+    membership = db.query(Membership).filter_by(
+        chat_id = chat_id,
+        user_id = user_id
+    ).first()
+
+    if not membership:
+        await websocket.close(code=4003, reason="Not a member of this chat")
+        manager.disconnect(websocket, chat_id)
+        return
+    
+    # get username for better messages
+    user = db.query(User).filter_by(id = user_id).first()
+    username = user.username if user else f"User {user_id}"
+
 
     # join event
     join_message = {
         "type": "user_joined",
-        "content": f"{user_id} joined the chat",
+        "content": f"{username} joined the chat",
         "timestamp": datetime.now(tz=pytz.timezone("Australia/Brisbane")).isoformat(),
         "sender": "system"
     }
@@ -65,12 +104,12 @@ async def websocket_endpoint(chat_id : int, websocket : WebSocket, user_id : int
     try:
         while True:
             data = await websocket.receive_text()
-            print(f"Received from user {user_id} in chat {chat_id}: {data}")
+            print(f"Received from user {username} in chat {chat_id}: {data}")
 
             # broadcast to all connected clients
             message = {
                 "type" : "message",
-                "sender" : user_id,
+                "sender" : username,
                 "content" : data,
                 "timestamp" : datetime.now(tz=pytz.timezone("Australia/Brisbane")).isoformat()
             }
@@ -87,16 +126,18 @@ async def websocket_endpoint(chat_id : int, websocket : WebSocket, user_id : int
             db.commit()
             db.refresh(new_message)
 
+    except WebSocketDisconnect:
+        print(f"{username} disconnected from chat {chat_id}")
+
     except Exception as e:
         print(f"Error: {e}")
     finally:
          # Notify everyone that this user left
         leave_message = {
             "type": "user_left",
-            "content": f"{user_id} left the chat",
+            "content": f"{username} left the chat",
             "timestamp": datetime.now(tz=pytz.timezone("Australia/Brisbane")).isoformat(),
             "sender": "system"
         }
+        manager.broadcast(json.dumps(leave_message), chat_id)
         manager.disconnect(websocket, chat_id)
-
-       
