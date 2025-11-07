@@ -42,7 +42,7 @@ class MessageOut(BaseModel):
 
 # Chats
 class Member(BaseModel):
-    id : int
+    id : int = 0
     username : str
     email : str
     creator : bool = False
@@ -54,12 +54,13 @@ class ChatOut(BaseModel):
     pinned : bool = False
     members : list[Member] = []
     initial_messages : list[MessageOut]
+    id : int
 
 
 class ChatCreate(BaseModel):
     name : str
     creator_id : int
-    member_ids : list[int] = []
+    starting_members : list[Member] = []
 
 class ChatIn(BaseModel):
     new_name : str

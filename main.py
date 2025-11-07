@@ -12,6 +12,8 @@ from routes.websocket import router as websocket_router
 
 app = FastAPI()
 
+load_dotenv()
+
 # add CORS middlware
 app.add_middleware(
     CORSMiddleware,
