@@ -3,6 +3,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
+from utils.join_utils import generate_invite_code
+
 import pytz
 from datetime import datetime
 
@@ -48,6 +50,7 @@ class Chat(Base):
     id=Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     creator_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)
+    invite_code = Column(String, nullable=False, default=generate_invite_code())
 
     creator = relationship("User", back_populates="owned_chats")
     memberships = relationship("Membership", back_populates="chat", cascade="all, delete-orphan")
